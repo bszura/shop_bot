@@ -149,7 +149,7 @@ class ShopView(discord.ui.View):
 
 # ==================== PANEL PROWIZJI ====================
 
-# Słownik prowizji
+# Słownik prowizji (ukryte do momentu wyboru)
 PROWIZJE = {
     "karta": {"name": "𝑲𝒂𝒓𝒕𝒂 (𝑽𝒊𝒔𝒂 / 𝑴𝒂𝒔𝒕𝒆𝒓𝒄𝒂𝒓𝒅)", "emoji": "💳", "prowizja": "5%"},
     "przelew": {"name": "𝑷𝒓𝒛𝒆𝒍𝒆𝒘 𝒃𝒂𝒏𝒌𝒐𝒘𝒚", "emoji": "🏦", "prowizja": "2%"},
@@ -162,13 +162,13 @@ PROWIZJE = {
     "giftcard": {"name": "𝑮𝒊𝒇𝒕 𝑪𝒂𝒓𝒅 / 𝑽𝒐𝒖𝒄𝒉𝒆𝒓𝒔", "emoji": "🎁", "prowizja": "8%"},
 }
 
-# Select Menu Class - Prowizje
+# Select Menu Class - Prowizje (bez pokazywania prowizji)
 class ProwizjeSelectMenu(discord.ui.Select):
     def __init__(self):
         options = [
             discord.SelectOption(
                 label=data["name"],
-                description=f"Prowizja: {data['prowizja']}",
+                description="Kliknij aby sprawdzić prowizję",
                 emoji=data["emoji"],
                 value=key
             )
@@ -193,9 +193,13 @@ class ProwizjeSelectMenu(discord.ui.Select):
             color=0xffd700
         )
         
+        # Obliczenie przykładu
+        prowizja_procent = float(metoda['prowizja'].replace('%', ''))
+        kwota_po_prowizji = 100 - (100 * prowizja_procent / 100)
+        
         embed.add_field(
-            name="📊 Przykład",
-            value=f"Kwota: 100 zł → Po prowizji: {100 - (100 * float(metoda['prowizja'].replace('%', '')) / 100):.2f} zł",
+            name="📊 Przykład obliczenia",
+            value=f"Kwota: **100 zł**\n→ Po prowizji: **{kwota_po_prowizji:.2f} zł**",
             inline=False
         )
         
@@ -236,7 +240,7 @@ async def panel(interaction: discord.Interaction):
     
     await interaction.response.send_message(embed=embed, view=ShopView())
 
-# Komenda /prowizje
+# Komenda /prowizje (BEZ pokazywania prowizji w głównym embedzie)
 @bot.tree.command(name="prowizje", description="Sprawdź prowizje metod płatności")
 async def prowizje(interaction: discord.Interaction):
     
@@ -245,22 +249,22 @@ async def prowizje(interaction: discord.Interaction):
         description=(
             "**║        💱 𝑷𝑹𝑶𝑾𝑰𝒁𝑱𝑬 𝑾𝒀𝑴𝑰𝑨𝑵𝑰𝑨 𝑾𝑨𝑳𝑼𝑻      ║**\n"
             "**╠══════════════════════════════════════╣**\n"
-            "**║** 💳 𝑲𝒂𝒓𝒕𝒂 (𝑽𝒊𝒔𝒂 / 𝑴𝒂𝒔𝒕𝒆𝒓𝒄𝒂𝒓𝒅)  — 5%\n"
-            "**║** 🏦 𝑷𝒓𝒛𝒆𝒍𝒆𝒘 𝒃𝒂𝒏𝒌𝒐𝒘𝒚           — 2%\n"
-            "**║** 📱 𝑩𝑳𝑰𝑲                      — 3%\n"
-            "**║** 📲 𝑹𝒆𝒗𝒐𝒍𝒖𝒕                   — 3%\n"
-            "**║** 💸 𝑷𝒂𝒚𝑷𝒂𝒍                    — 6%\n"
-            "**║** 🪙 𝑪𝒓𝒚𝒑𝒕𝒐 (𝑩𝑻𝑪 / 𝑬𝑻𝑯)        — 4%\n"
-            "**║** 🎫 𝑷𝒂𝒚𝒔𝒂𝒇𝒆𝒄𝒂𝒓𝒅               — 10%\n"
-            "**║** 🎮 𝑮𝒐𝒐𝒈𝒍𝒆 𝑷𝒍𝒂𝒚               — 12%\n"
-            "**║** 🎁 𝑮𝒊𝒇𝒕 𝑪𝒂𝒓𝒅 / 𝑽𝒐𝒖𝒄𝒉𝒆𝒓𝒔      — 8%\n"
+            "**║** 💳 𝑲𝒂𝒓𝒕𝒂 (𝑽𝒊𝒔𝒂 / 𝑴𝒂𝒔𝒕𝒆𝒓𝒄𝒂𝒓𝒅)\n"
+            "**║** 🏦 𝑷𝒓𝒛𝒆𝒍𝒆𝒘 𝒃𝒂𝒏𝒌𝒐𝒘𝒚\n"
+            "**║** 📱 𝑩𝑳𝑰𝑲\n"
+            "**║** 📲 𝑹𝒆𝒗𝒐𝒍𝒖𝒕\n"
+            "**║** 💸 𝑷𝒂𝒚𝑷𝒂𝒍\n"
+            "**║** 🪙 𝑪𝒓𝒚𝒑𝒕𝒐 (𝑩𝑻𝑪 / 𝑬𝑻𝑯)\n"
+            "**║** 🎫 𝑷𝒂𝒚𝒔𝒂𝒇𝒆𝒄𝒂𝒓𝒅\n"
+            "**║** 🎮 𝑮𝒐𝒐𝒈𝒍𝒆 𝑷𝒍𝒂𝒚\n"
+            "**║** 🎁 𝑮𝒊𝒇𝒕 𝑪𝒂𝒓𝒅 / 𝑽𝒐𝒖𝒄𝒉𝒆𝒓𝒔\n"
             "**╚══════════════════════════════════════╝**"
         ),
         color=0xffd700
     )
     
     embed.set_footer(
-        text="Wybierz metodę płatności z menu poniżej",
+        text="Wybierz metodę płatności z menu poniżej aby sprawdzić prowizję",
         icon_url=bot.user.avatar.url if bot.user.avatar else None
     )
     
