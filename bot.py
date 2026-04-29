@@ -34,7 +34,9 @@ async def on_ready():
         status=discord.Status.online
     )
 
-# Select Menu Class
+# ==================== PANEL SKLEPU ====================
+
+# Select Menu Class - Panel Sklepu
 class ShopSelectMenu(discord.ui.Select):
     def __init__(self):
         options = [
@@ -140,11 +142,73 @@ class ShopSelectMenu(discord.ui.Select):
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
-# View z Select Menu
 class ShopView(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
         self.add_item(ShopSelectMenu())
+
+# ==================== PANEL PROWIZJI ====================
+
+# Słownik prowizji
+PROWIZJE = {
+    "karta": {"name": "𝑲𝒂𝒓𝒕𝒂 (𝑽𝒊𝒔𝒂 / 𝑴𝒂𝒔𝒕𝒆𝒓𝒄𝒂𝒓𝒅)", "emoji": "💳", "prowizja": "5%"},
+    "przelew": {"name": "𝑷𝒓𝒛𝒆𝒍𝒆𝒘 𝒃𝒂𝒏𝒌𝒐𝒘𝒚", "emoji": "🏦", "prowizja": "2%"},
+    "blik": {"name": "𝑩𝑳𝑰𝑲", "emoji": "📱", "prowizja": "3%"},
+    "revolut": {"name": "𝑹𝒆𝒗𝒐𝒍𝒖𝒕", "emoji": "📲", "prowizja": "3%"},
+    "paypal": {"name": "𝑷𝒂𝒚𝑷𝒂𝒍", "emoji": "💸", "prowizja": "6%"},
+    "crypto": {"name": "𝑪𝒓𝒚𝒑𝒕𝒐 (𝑩𝑻𝑪 / 𝑬𝑻𝑯)", "emoji": "🪙", "prowizja": "4%"},
+    "paysafecard": {"name": "𝑷𝒂𝒚𝒔𝒂𝒇𝒆𝒄𝒂𝒓𝒅", "emoji": "🎫", "prowizja": "10%"},
+    "googleplay": {"name": "𝑮𝒐𝒐𝒈𝒍𝒆 𝑷𝒍𝒂𝒚", "emoji": "🎮", "prowizja": "12%"},
+    "giftcard": {"name": "𝑮𝒊𝒇𝒕 𝑪𝒂𝒓𝒅 / 𝑽𝒐𝒖𝒄𝒉𝒆𝒓𝒔", "emoji": "🎁", "prowizja": "8%"},
+}
+
+# Select Menu Class - Prowizje
+class ProwizjeSelectMenu(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(
+                label=data["name"],
+                description=f"Prowizja: {data['prowizja']}",
+                emoji=data["emoji"],
+                value=key
+            )
+            for key, data in PROWIZJE.items()
+        ]
+        
+        super().__init__(
+            placeholder="💱 Wybierz metodę płatności...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="prowizje_menu"
+        )
+    
+    async def callback(self, interaction: discord.Interaction):
+        selected = self.values[0]
+        metoda = PROWIZJE[selected]
+        
+        embed = discord.Embed(
+            title="💱 INFORMACJA O PROWIZJI",
+            description=f"Prowizja przy płatności metodą **{metoda['name']}** wynosi **{metoda['prowizja']}**.",
+            color=0xffd700
+        )
+        
+        embed.add_field(
+            name="📊 Przykład",
+            value=f"Kwota: 100 zł → Po prowizji: {100 - (100 * float(metoda['prowizja'].replace('%', '')) / 100):.2f} zł",
+            inline=False
+        )
+        
+        embed.set_footer(text=f"{metoda['emoji']} {metoda['name']}")
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+
+class ProwizjeView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(ProwizjeSelectMenu())
+
+# ==================== KOMENDY ====================
 
 # Komenda /panel
 @bot.tree.command(name="panel", description="Wyświetla panel sklepu")
@@ -171,6 +235,39 @@ async def panel(interaction: discord.Interaction):
         embed.set_thumbnail(url=interaction.guild.icon.url)
     
     await interaction.response.send_message(embed=embed, view=ShopView())
+
+# Komenda /prowizje
+@bot.tree.command(name="prowizje", description="Sprawdź prowizje metod płatności")
+async def prowizje(interaction: discord.Interaction):
+    
+    embed = discord.Embed(
+        title="╔══════════════════════════════════════╗",
+        description=(
+            "**║        💱 𝑷𝑹𝑶𝑾𝑰𝒁𝑱𝑬 𝑾𝒀𝑴𝑰𝑨𝑵𝑰𝑨 𝑾𝑨𝑳𝑼𝑻      ║**\n"
+            "**╠══════════════════════════════════════╣**\n"
+            "**║** 💳 𝑲𝒂𝒓𝒕𝒂 (𝑽𝒊𝒔𝒂 / 𝑴𝒂𝒔𝒕𝒆𝒓𝒄𝒂𝒓𝒅)  — 5%\n"
+            "**║** 🏦 𝑷𝒓𝒛𝒆𝒍𝒆𝒘 𝒃𝒂𝒏𝒌𝒐𝒘𝒚           — 2%\n"
+            "**║** 📱 𝑩𝑳𝑰𝑲                      — 3%\n"
+            "**║** 📲 𝑹𝒆𝒗𝒐𝒍𝒖𝒕                   — 3%\n"
+            "**║** 💸 𝑷𝒂𝒚𝑷𝒂𝒍                    — 6%\n"
+            "**║** 🪙 𝑪𝒓𝒚𝒑𝒕𝒐 (𝑩𝑻𝑪 / 𝑬𝑻𝑯)        — 4%\n"
+            "**║** 🎫 𝑷𝒂𝒚𝒔𝒂𝒇𝒆𝒄𝒂𝒓𝒅               — 10%\n"
+            "**║** 🎮 𝑮𝒐𝒐𝒈𝒍𝒆 𝑷𝒍𝒂𝒚               — 12%\n"
+            "**║** 🎁 𝑮𝒊𝒇𝒕 𝑪𝒂𝒓𝒅 / 𝑽𝒐𝒖𝒄𝒉𝒆𝒓𝒔      — 8%\n"
+            "**╚══════════════════════════════════════╝**"
+        ),
+        color=0xffd700
+    )
+    
+    embed.set_footer(
+        text="Wybierz metodę płatności z menu poniżej",
+        icon_url=bot.user.avatar.url if bot.user.avatar else None
+    )
+    
+    if interaction.guild and interaction.guild.icon:
+        embed.set_thumbnail(url=interaction.guild.icon.url)
+    
+    await interaction.response.send_message(embed=embed, view=ProwizjeView())
 
 # Komenda /info
 @bot.tree.command(name="info", description="Informacje o bocie")
